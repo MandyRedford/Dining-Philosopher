@@ -14,29 +14,29 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class Philosopher implements Runnable {
 
-    private ReentrantLock leftChopStick;
-    private ReentrantLock rightChopStick;
+	//ReentrantLock = synchronised but more complex, no notifys
+    private ReentrantLock leftFork;   // The left and right forks of each philosopher
+    private ReentrantLock rightFork;
     private int Id;
 
-    public AtomicBoolean isTummyFull=new AtomicBoolean(false);
+    public AtomicBoolean isTummyFull=new AtomicBoolean(false);  //Did they eat? If they did, they're full
 
     //To randomize eat/Think time
     private Random randomGenerator = new Random();
-
     private int noOfTurnsToEat=0;
 
-    public int getId(){
+    public int getId(){   // gets the ID of the Philosopher
         return this.Id;
     }
-    public int getNoOfTurnsToEat(){
+    public int getNoOfTurnsToEat(){   // returns the number of times the philosopher has eaten
         return noOfTurnsToEat;
     }
 
 
-    public Philosopher(int id, ReentrantLock leftChopStick, ReentrantLock rightChopStick) {
+    public Philosopher(int id, ReentrantLock leftFork, ReentrantLock rightFork) {
         this.Id = id;
-        this.leftChopStick = leftChopStick;
-        this.rightChopStick = rightChopStick;
+        this.leftFork = leftFork;
+        this.rightFork = rightFork;  // Identifies itself and the forks around it
     }
 
     @Override
@@ -44,10 +44,10 @@ public class Philosopher implements Runnable {
         while ( !isTummyFull.get()) {
             try {
                 think();
-                if (pickupLeftChopStick() && pickupRightChopStick()) {
+                if (pickupLeftFork() && pickupRightFork()) {   // if the philosopher has not eaten, then attempt to grab the forks
                     eat();
                 }
-                putDownChopSticks();
+                putDownForks();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -55,50 +55,50 @@ public class Philosopher implements Runnable {
     }
 
     private void think() throws InterruptedException {
-        System.out
-                .println(String.format("Philosopher %s is thinking", this.Id));
+        System.out.println
+        		(String.format("Philosopher %s is thinking", this.Id));  // allows the philosopher to think about life and creation
         System.out.flush();
-        Thread.sleep(randomGenerator.nextInt(1000));
+        Thread.sleep(randomGenerator.nextInt(1000));//nextInt can return 0 and z-
     }
 
     private void eat() throws InterruptedException {
-        System.out.println(String.format("Philosopher %s is eating", this.Id));
+        System.out.println(String.format("Philosopher %s is eating", this.Id));  // allows the philosopher to eat
         System.out.flush();
         noOfTurnsToEat++;
         Thread.sleep(randomGenerator.nextInt(1000));
     }
 
-    private boolean pickupLeftChopStick() throws InterruptedException {
-        if (leftChopStick.tryLock(10, TimeUnit.MILLISECONDS)) {
+    private boolean pickupLeftFork() throws InterruptedException {
+        if (leftFork.tryLock(10, TimeUnit.MILLISECONDS)) {
             System.out.println(String.format(
-                    "Philosopher %s pickedup Left ChopStick", this.Id));
+                    "Philosopher %s pickedup Left Fork", this.Id));  // attemps to pick up the fork to their left
             System.out.flush();
             return true;
         }
         return false;
     }
 
-    private boolean pickupRightChopStick() throws InterruptedException {
-        if (rightChopStick.tryLock(10, TimeUnit.MILLISECONDS)) {
+    private boolean pickupRightFork() throws InterruptedException {
+        if (rightFork.tryLock(10, TimeUnit.MILLISECONDS)) {
             System.out.println(String.format(
-                    "Philosopher %s pickedup Right ChopStick", this.Id));
+                    "Philosopher %s pickedup Right Fork", this.Id));  // attempts to pick up the fork to their right
             System.out.flush();
             return true;
         }
         return false;
     }
 
-    private void putDownChopSticks() {
-        if (leftChopStick.isHeldByCurrentThread()) {
-            leftChopStick.unlock();
+    private void putDownForks() {
+        if (leftFork.isHeldByCurrentThread()) {
+            leftFork.unlock();
             System.out.println(String.format(
-                    "Philosopher %s putdown Left ChopStick", this.Id));
-            System.out.flush();
+                    "Philosopher %s putdown Left Forkk", this.Id));
+            System.out.flush();                                         //puts down both forks
         }
-        if (rightChopStick.isHeldByCurrentThread()) {
-            rightChopStick.unlock();
+        if (rightFork.isHeldByCurrentThread()) {
+            rightFork.unlock();
             System.out.println(String.format(
-                    "Philosopher %s putdown Right ChopStick", this.Id));
+                    "Philosopher %s putdown Right Fork", this.Id));
             System.out.flush();
         }
     }
